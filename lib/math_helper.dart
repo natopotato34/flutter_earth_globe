@@ -165,3 +165,21 @@ double adjustModRotation(double rotation) {
   }
   return rotation;
 }
+
+/// Calculates a destination coordinate from [start] given a distance in degrees
+/// and a bearing in degrees.
+GlobeCoordinates offsetCoordinates(
+    GlobeCoordinates start, double distanceDeg, double bearingDeg) {
+  final lat1 = degreesToRadians(start.latitude);
+  final lon1 = degreesToRadians(start.longitude);
+  final brng = degreesToRadians(bearingDeg);
+  final dist = degreesToRadians(distanceDeg);
+
+  final lat2 =
+      asin(sin(lat1) * cos(dist) + cos(lat1) * sin(dist) * cos(brng));
+  final lon2 = lon1 +
+      atan2(sin(brng) * sin(dist) * cos(lat1),
+          cos(dist) - sin(lat1) * sin(lat2));
+
+  return GlobeCoordinates(radiansToDegrees(lat2), radiansToDegrees(lon2));
+}
