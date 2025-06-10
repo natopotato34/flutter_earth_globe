@@ -6,6 +6,7 @@ import 'package:flutter_earth_globe/point_connection.dart';
 import 'package:flutter_earth_globe/point_connection_style.dart';
 import 'package:flutter_earth_globe/rod.dart';
 import 'package:flutter_earth_globe/region_highlight.dart';
+import 'package:flutter_earth_globe/math_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_earth_globe/sphere_style.dart';
 
@@ -50,7 +51,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   List<PointConnection> connections = [];
 
-  late Rod rodAnchorageRio;
+  double hawaiiRadiusMiles = 100;
+  double rodAnchorageRioLengthMiles = 1000;
+  double rodHongKongMadridLengthMiles = 1000;
   late Rod rodHongKongMadrid;
   late RegionHighlight bermudaTriangle;
   late RegionHighlight hawaiiCircle;
@@ -187,9 +190,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           end: points[3].coordinates,
           isMoving: true,
           labelBuilder: connectionLabelBuilder,
-          id: '2',
-          style: const PointConnectionStyle(type: PointConnectionType.dashed),
-          label: 'New York to Center'),
+        stickOutMiles: rodAnchorageRioLengthMiles,
+        stickOutMiles: rodHongKongMadridLengthMiles,
+        radius: milesToDegrees(hawaiiRadiusMiles),
       PointConnection(
           label: 'Tokyo to Center',
           labelBuilder: connectionLabelBuilder,
@@ -452,14 +455,51 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           getDividerText('Connections'),
           ...connections
               .map((e) => getListAction(
-                  e.label ?? '',
-                  Checkbox(
-                    value: _controller.connections
-                        .where((element) => element.id == e.id)
-                        .isNotEmpty,
-                    onChanged: (value) {
-                      if (value == true) {
-                        _controller.addPointConnection(e, animateDraw: true);
+              ),
+              secondary: showRodAnchorageRio
+                  ? Slider(
+                      min: 10,
+                      max: 10000,
+                      value: rodAnchorageRioLengthMiles,
+                      label:
+                          '${rodAnchorageRioLengthMiles.toStringAsFixed(0)} mi',
+                      onChanged: (v) {
+                        rodAnchorageRioLengthMiles = v;
+                        rodAnchorageRio = rodAnchorageRio.copyWith(
+                            stickOutMiles: rodAnchorageRioLengthMiles);
+                        _controller.updateRod(rodAnchorageRio.id,
+                            stickOutMiles: rodAnchorageRioLengthMiles);
+                        setState(() {});
+                      },
+                    )
+                  : null),
+              ),
+              secondary: showRodHongKongMadrid
+                  ? Slider(
+                      min: 10,
+                      max: 10000,
+                      value: rodHongKongMadridLengthMiles,
+                      label:
+                          '${rodHongKongMadridLengthMiles.toStringAsFixed(0)} mi',
+                      onChanged: (v) {
+                        rodHongKongMadridLengthMiles = v;
+                        rodHongKongMadrid = rodHongKongMadrid.copyWith(
+                            stickOutMiles: rodHongKongMadridLengthMiles);
+                        _controller.updateRod(rodHongKongMadrid.id,
+                            stickOutMiles: rodHongKongMadridLengthMiles);
+                        setState(() {});
+                      },
+                    )
+                  : null),
+                      min: 10,
+                      max: 5000,
+                      value: hawaiiRadiusMiles,
+                      label: '${hawaiiRadiusMiles.toStringAsFixed(0)} mi',
+                        hawaiiRadiusMiles = v;
+                        hawaiiCircle = hawaiiCircle.copyWith(
+                            radius: milesToDegrees(hawaiiRadiusMiles));
+                        _controller.updateRegion(hawaiiCircle.id,
+                            radius: milesToDegrees(hawaiiRadiusMiles));
                       } else {
                         _controller.removePointConnection(e.id);
                       }

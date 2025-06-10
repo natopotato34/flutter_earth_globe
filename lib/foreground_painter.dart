@@ -182,8 +182,9 @@ class ForegroundPainter extends CustomPainter {
         paintText(point.label ?? '', point.labelTextStyle, cartesian2D, size,
             canvas);
 
-      }
-    } else {
+      final stickOut = rod.stickOutMiles / kEarthRadiusMiles * radius;
+      final startOuter = startSurface - direction * stickOut;
+      final endOuter = endSurface + direction * stickOut;
       hoverOverPoint(point.id, cartesian2D, false, false);
     }
   }
