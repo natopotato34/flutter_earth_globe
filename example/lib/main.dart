@@ -484,7 +484,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               secondary: showRodAnchorageRio
                   ? Slider(
                       min: 10,
-                      max: 10000,
+                      max: 1000000,
                       value: rodAnchorageRioLengthMiles,
                       label:
                           '${rodAnchorageRioLengthMiles.toStringAsFixed(0)} mi',
@@ -515,7 +515,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               secondary: showRodHongKongMadrid
                   ? Slider(
                       min: 10,
-                      max: 10000,
+                      max: 1000000,
                       value: rodHongKongMadridLengthMiles,
                       label:
                           '${rodHongKongMadridLengthMiles.toStringAsFixed(0)} mi',
