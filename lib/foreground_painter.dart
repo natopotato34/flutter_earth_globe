@@ -189,14 +189,17 @@ class ForegroundPainter extends CustomPainter {
 
     // Draw rods
     for (var rod in rods) {
-      final startOuter = getSpherePosition3D(
-          rod.start, radius + rod.stickOut, rotationY, rotationZ);
       final startSurface =
           getSpherePosition3D(rod.start, radius, rotationY, rotationZ);
-      final endOuter =
-          getSpherePosition3D(rod.end, radius + rod.stickOut, rotationY, rotationZ);
       final endSurface =
           getSpherePosition3D(rod.end, radius, rotationY, rotationZ);
+
+      // Calculate the direction vector from start to end after rotations
+      final direction = (endSurface - startSurface)..normalize();
+
+      final startOuter = startSurface - direction * rod.stickOut;
+      final endOuter = endSurface + direction * rod.stickOut;
+
       final paint = Paint()
         ..color = rod.color
         ..strokeWidth = rod.width
