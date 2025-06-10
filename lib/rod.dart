@@ -9,6 +9,7 @@ class Rod {
   final String id;
   final Color color;
   final double width;
+  /// Distance each end extends outward from the sphere surface in miles.
   final double stickOutMiles;
 
   /// Creates a new [Rod].
