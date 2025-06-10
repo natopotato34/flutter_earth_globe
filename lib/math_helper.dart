@@ -5,6 +5,9 @@ import 'package:vector_math/vector_math_64.dart';
 
 import 'globe_coordinates.dart';
 
+/// Average radius of the Earth in miles.
+const double kEarthRadiusMiles = 3958.8;
+
 /// Converts degrees to radians.
 ///
 /// Takes a [degrees] value and returns the equivalent value in radians.
@@ -17,6 +20,16 @@ double degreesToRadians(double degrees) {
 /// Takes a [radians] value and returns the equivalent value in degrees.
 double radiansToDegrees(double radians) {
   return radians * 180 / pi;
+}
+
+/// Converts [miles] on the Earth's surface to degrees.
+double milesToDegrees(double miles) {
+  return radiansToDegrees(miles / kEarthRadiusMiles);
+}
+
+/// Converts a distance in degrees on the Earth's surface to miles.
+double degreesToMiles(double degrees) {
+  return degreesToRadians(degrees) * kEarthRadiusMiles;
 }
 
 /// Calculates the 3D position of a point on a sphere.

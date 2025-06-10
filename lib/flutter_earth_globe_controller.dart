@@ -317,7 +317,8 @@ class FlutterEarthGlobeController extends ChangeNotifier {
     GlobeCoordinates? end,
     Color? color,
     double? width,
-    double? stickOut,
+    double? stickOutMiles,
+
   }) {
     final index = rods.indexWhere((element) => element.id == id);
     if (index != -1) {
@@ -326,7 +327,7 @@ class FlutterEarthGlobeController extends ChangeNotifier {
         end: end,
         color: color,
         width: width,
-        stickOut: stickOut,
+        stickOutMiles: stickOutMiles,
       );
       notifyListeners();
     }

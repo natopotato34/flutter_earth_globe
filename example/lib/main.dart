@@ -6,6 +6,8 @@ import 'package:flutter_earth_globe/point_connection.dart';
 import 'package:flutter_earth_globe/point_connection_style.dart';
 import 'package:flutter_earth_globe/rod.dart';
 import 'package:flutter_earth_globe/region_highlight.dart';
+import 'package:flutter_earth_globe/math_helper.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_earth_globe/sphere_style.dart';
 
@@ -49,6 +51,18 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   late List<Point> points;
 
   List<PointConnection> connections = [];
+  late Rod rodAnchorageRio;
+  late Rod rodHongKongMadrid;
+  late RegionHighlight bermudaTriangle;
+  late RegionHighlight hawaiiCircle;
+
+  bool showRodAnchorageRio = false;
+  bool showRodHongKongMadrid = false;
+  bool showBermudaTriangle = false;
+  bool showHawaiiCircle = false;
+  double hawaiiRadiusMiles = 100;
+  double rodAnchorageRioLengthMiles = 1000;
+  double rodHongKongMadridLengthMiles = 1000;
 
   late Rod rodAnchorageRio;
   late Rod rodHongKongMadrid;
@@ -214,7 +228,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         start: const GlobeCoordinates(61.2175, -149.8997),
         end: const GlobeCoordinates(-22.9068, -43.1729),
         color: Colors.purple,
-        stickOut: 15,
+
+        stickOutMiles: rodAnchorageRioLengthMiles,
+
         width: 3);
 
     rodHongKongMadrid = Rod(
@@ -222,7 +238,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         start: const GlobeCoordinates(22.3193, 114.1694),
         end: const GlobeCoordinates(40.4168, -3.7038),
         color: Colors.orange,
-        stickOut: 15,
+
+        stickOutMiles: rodHongKongMadridLengthMiles,
+
         width: 3);
 
     bermudaTriangle = RegionHighlight.polygon(id: 'bermuda', coordinates: [
@@ -234,7 +252,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     hawaiiCircle = RegionHighlight.circle(
         id: 'hawaii',
         center: const GlobeCoordinates(19.8968, -155.5828),
-        radius: hawaiiRadius,
+
+        radius: milesToDegrees(hawaiiRadiusMiles),
         color: Colors.red.withOpacity(0.2));
 
 
@@ -481,7 +500,25 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   }
                   setState(() {});
                 },
-              )),
+              ),
+              secondary: showRodAnchorageRio
+                  ? Slider(
+                      min: 10,
+                      max: 10000,
+                      value: rodAnchorageRioLengthMiles,
+                      label:
+                          '${rodAnchorageRioLengthMiles.toStringAsFixed(0)} mi',
+                      onChanged: (v) {
+                        rodAnchorageRioLengthMiles = v;
+                        rodAnchorageRio = rodAnchorageRio.copyWith(
+                            stickOutMiles: rodAnchorageRioLengthMiles);
+                        _controller.updateRod(rodAnchorageRio.id,
+                            stickOutMiles: rodAnchorageRioLengthMiles);
+                        setState(() {});
+                      },
+                    )
+                  : null),
+
           getListAction(
               'Hong Kong - Madrid',
               Checkbox(
@@ -495,7 +532,25 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   }
                   setState(() {});
                 },
-              )),
+              ),
+              secondary: showRodHongKongMadrid
+                  ? Slider(
+                      min: 10,
+                      max: 10000,
+                      value: rodHongKongMadridLengthMiles,
+                      label:
+                          '${rodHongKongMadridLengthMiles.toStringAsFixed(0)} mi',
+                      onChanged: (v) {
+                        rodHongKongMadridLengthMiles = v;
+                        rodHongKongMadrid = rodHongKongMadrid.copyWith(
+                            stickOutMiles: rodHongKongMadridLengthMiles);
+                        _controller.updateRod(rodHongKongMadrid.id,
+                            stickOutMiles: rodHongKongMadridLengthMiles);
+                        setState(() {});
+                      },
+                    )
+                  : null),
+
           getDividerText('Regions'),
           getListAction(
               'Bermuda Triangle',
@@ -526,13 +581,16 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               ),
               secondary: showHawaiiCircle
                   ? Slider(
-                      min: 1,
-                      max: 30,
-                      value: hawaiiRadius,
+                      min: 10,
+                      max: 5000,
+                      value: hawaiiRadiusMiles,
+                      label: '${hawaiiRadiusMiles.toStringAsFixed(0)} mi',
                       onChanged: (v) {
-                        hawaiiRadius = v;
-                        hawaiiCircle = hawaiiCircle.copyWith(radius: hawaiiRadius);
-                        _controller.updateRegion(hawaiiCircle.id, radius: hawaiiRadius);
+                        hawaiiRadiusMiles = v;
+                        hawaiiCircle = hawaiiCircle.copyWith(
+                            radius: milesToDegrees(hawaiiRadiusMiles));
+                        _controller.updateRegion(hawaiiCircle.id,
+                            radius: milesToDegrees(hawaiiRadiusMiles));
                         setState(() {});
                       },
                     )

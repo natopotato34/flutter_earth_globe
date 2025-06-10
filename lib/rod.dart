@@ -9,7 +9,8 @@ class Rod {
   final String id;
   final Color color;
   final double width;
-  final double stickOut;
+  final double stickOutMiles;
+
 
   /// Creates a new [Rod].
   const Rod({
@@ -18,7 +19,8 @@ class Rod {
     required this.id,
     this.color = Colors.white,
     this.width = 2,
-    this.stickOut = 10,
+    this.stickOutMiles = 10,
+
   });
 
   /// Returns a copy of this rod with the given fields replaced.
@@ -28,7 +30,7 @@ class Rod {
     String? id,
     Color? color,
     double? width,
-    double? stickOut,
+    double? stickOutMiles,
   }) {
     return Rod(
       start: start ?? this.start,
@@ -36,7 +38,7 @@ class Rod {
       id: id ?? this.id,
       color: color ?? this.color,
       width: width ?? this.width,
-      stickOut: stickOut ?? this.stickOut,
+      stickOutMiles: stickOutMiles ?? this.stickOutMiles,
     );
   }
 }
