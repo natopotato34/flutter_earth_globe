@@ -210,22 +210,26 @@ class ForegroundPainter extends CustomPainter {
         final surface2d = Offset(center.dx + surface.y, center.dy - surface.z);
         final outer2d = Offset(center.dx + outer.y, center.dy - outer.z);
 
-        // If the surface point is visible draw the whole segment regardless of
-        // where the outer point lies. This ensures the rod doesn't appear to
-        // shorten while the base is still visible.
-        if (surface.x > 0) {
+        // If both points are behind the sphere nothing is visible.
+        if (surface.x <= 0 && outer.x <= 0) {
+          return;
+        }
+
+        // If both points are in front the whole segment is visible.
+        if (surface.x > 0 && outer.x > 0) {
           canvas.drawLine(surface2d, outer2d, paint);
           return;
         }
 
-        // If both points are behind the sphere nothing is visible.
-        if (outer.x <= 0 && surface.x <= 0) return;
+        // Otherwise one point is front and one is back. Clip at the horizon
+        // where x == 0 so that only the visible portion is drawn.
+        final t = surface.x / (surface.x - outer.x);
+        final inter = surface + (outer - surface) * t;
+        final inter2d = Offset(center.dx + inter.y, center.dy - inter.z);
 
-        // Surface is hidden but part of the segment may still extend in front.
-        if (outer.x > 0) {
-          final t = surface.x / (surface.x - outer.x);
-          final inter = surface + (outer - surface) * t;
-          final inter2d = Offset(center.dx + inter.y, center.dy - inter.z);
+        if (surface.x > 0) {
+          canvas.drawLine(surface2d, inter2d, paint);
+        } else if (outer.x > 0) {
           canvas.drawLine(inter2d, outer2d, paint);
         }
       }
