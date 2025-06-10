@@ -181,6 +181,7 @@ class ForegroundPainter extends CustomPainter {
           point.labelBuilder == null) {
         paintText(point.label ?? '', point.labelTextStyle, cartesian2D, size,
             canvas);
+
       }
     } else {
       hoverOverPoint(point.id, cartesian2D, false, false);
@@ -216,6 +217,7 @@ class ForegroundPainter extends CustomPainter {
         canvas.drawLine(p1, p2, paint);
       }
     }
+
 
     for (var connection in connections) {
       Map? info = drawAnimatedLine(canvas, connection, radius, rotationY,

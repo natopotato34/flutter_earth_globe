@@ -31,6 +31,7 @@ class RegionHighlight {
   })  : type = RegionHighlightType.circle,
         coordinates = [center];
 
+
   RegionHighlight copyWith({
     List<GlobeCoordinates>? coordinates,
     double? radius,
@@ -51,4 +52,5 @@ class RegionHighlight {
       );
     }
   }
+
 }

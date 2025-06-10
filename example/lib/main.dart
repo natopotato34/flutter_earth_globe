@@ -49,6 +49,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   late List<Point> points;
 
   List<PointConnection> connections = [];
+
   late Rod rodAnchorageRio;
   late Rod rodHongKongMadrid;
   late RegionHighlight bermudaTriangle;
@@ -59,6 +60,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   bool showBermudaTriangle = false;
   bool showHawaiiCircle = false;
   double hawaiiRadius = 10;
+
 
   Widget pointLabelBuilder(
       BuildContext context, Point point, bool isHovering, bool visible) {
@@ -206,6 +208,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       _controller.addPoint(point);
     }
 
+
     rodAnchorageRio = Rod(
         id: 'rodAnchorageRio',
         start: const GlobeCoordinates(61.2175, -149.8997),
@@ -233,6 +236,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         center: const GlobeCoordinates(19.8968, -155.5828),
         radius: hawaiiRadius,
         color: Colors.red.withOpacity(0.2));
+
 
     super.initState();
   }
