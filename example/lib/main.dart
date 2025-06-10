@@ -4,6 +4,8 @@ import 'package:flutter_earth_globe/globe_coordinates.dart';
 import 'package:flutter_earth_globe/point.dart';
 import 'package:flutter_earth_globe/point_connection.dart';
 import 'package:flutter_earth_globe/point_connection_style.dart';
+import 'package:flutter_earth_globe/rod.dart';
+import 'package:flutter_earth_globe/region_highlight.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_earth_globe/sphere_style.dart';
 
@@ -47,6 +49,16 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   late List<Point> points;
 
   List<PointConnection> connections = [];
+  late Rod rodAnchorageRio;
+  late Rod rodHongKongMadrid;
+  late RegionHighlight bermudaTriangle;
+  late RegionHighlight hawaiiCircle;
+
+  bool showRodAnchorageRio = false;
+  bool showRodHongKongMadrid = false;
+  bool showBermudaTriangle = false;
+  bool showHawaiiCircle = false;
+  double hawaiiRadius = 10;
 
   Widget pointLabelBuilder(
       BuildContext context, Point point, bool isHovering, bool visible) {
@@ -193,6 +205,34 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     for (var point in points) {
       _controller.addPoint(point);
     }
+
+    rodAnchorageRio = Rod(
+        id: 'rodAnchorageRio',
+        start: const GlobeCoordinates(61.2175, -149.8997),
+        end: const GlobeCoordinates(-22.9068, -43.1729),
+        color: Colors.purple,
+        stickOut: 15,
+        width: 3);
+
+    rodHongKongMadrid = Rod(
+        id: 'rodHongKongMadrid',
+        start: const GlobeCoordinates(22.3193, 114.1694),
+        end: const GlobeCoordinates(40.4168, -3.7038),
+        color: Colors.orange,
+        stickOut: 15,
+        width: 3);
+
+    bermudaTriangle = RegionHighlight.polygon(id: 'bermuda', coordinates: [
+      const GlobeCoordinates(25.76, -80.19),
+      const GlobeCoordinates(18.4663, -66.1057),
+      const GlobeCoordinates(32.3078, -64.7505),
+    ], color: Colors.green.withOpacity(0.3));
+
+    hawaiiCircle = RegionHighlight.circle(
+        id: 'hawaii',
+        center: const GlobeCoordinates(19.8968, -155.5828),
+        radius: hawaiiRadius,
+        color: Colors.red.withOpacity(0.2));
 
     super.initState();
   }
@@ -423,6 +463,76 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     },
                   )))
               .toList(),
+          getDividerText('Rods'),
+          getListAction(
+              'Anchorage - Rio',
+              Checkbox(
+                value: showRodAnchorageRio,
+                onChanged: (value) {
+                  showRodAnchorageRio = value ?? false;
+                  if (showRodAnchorageRio) {
+                    _controller.addRod(rodAnchorageRio);
+                  } else {
+                    _controller.removeRod(rodAnchorageRio.id);
+                  }
+                  setState(() {});
+                },
+              )),
+          getListAction(
+              'Hong Kong - Madrid',
+              Checkbox(
+                value: showRodHongKongMadrid,
+                onChanged: (value) {
+                  showRodHongKongMadrid = value ?? false;
+                  if (showRodHongKongMadrid) {
+                    _controller.addRod(rodHongKongMadrid);
+                  } else {
+                    _controller.removeRod(rodHongKongMadrid.id);
+                  }
+                  setState(() {});
+                },
+              )),
+          getDividerText('Regions'),
+          getListAction(
+              'Bermuda Triangle',
+              Checkbox(
+                value: showBermudaTriangle,
+                onChanged: (value) {
+                  showBermudaTriangle = value ?? false;
+                  if (showBermudaTriangle) {
+                    _controller.addRegion(bermudaTriangle);
+                  } else {
+                    _controller.removeRegion(bermudaTriangle.id);
+                  }
+                  setState(() {});
+                },
+              )),
+          getListAction('Hawaii Circle',
+              Checkbox(
+                value: showHawaiiCircle,
+                onChanged: (value) {
+                  showHawaiiCircle = value ?? false;
+                  if (showHawaiiCircle) {
+                    _controller.addRegion(hawaiiCircle);
+                  } else {
+                    _controller.removeRegion(hawaiiCircle.id);
+                  }
+                  setState(() {});
+                },
+              ),
+              secondary: showHawaiiCircle
+                  ? Slider(
+                      min: 1,
+                      max: 30,
+                      value: hawaiiRadius,
+                      onChanged: (v) {
+                        hawaiiRadius = v;
+                        hawaiiCircle = hawaiiCircle.copyWith(radius: hawaiiRadius);
+                        _controller.updateRegion(hawaiiCircle.id, radius: hawaiiRadius);
+                        setState(() {});
+                      },
+                    )
+                  : null),
         ],
       ),
     );
