@@ -581,6 +581,8 @@ class RotatingGlobeState extends State<RotatingGlobe>
                                     rotationX: rotationX,
                                     zoomFactor: widget.controller.zoom,
                                     points: widget.controller.points,
+                                    rods: widget.controller.rods,
+                                    regions: widget.controller.regions,
                                   ),
                                   painter: SpherePainter(
                                     style: widget.controller.sphereStyle,

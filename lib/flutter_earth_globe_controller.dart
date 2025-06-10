@@ -12,6 +12,8 @@ import 'sphere_style.dart';
 import 'point_connection.dart';
 
 import 'point_connection_style.dart';
+import 'rod.dart';
+import 'region_highlight.dart';
 
 /// This class is the controller of the [RotatingGlobe] widget.
 ///
@@ -26,6 +28,8 @@ class FlutterEarthGlobeController extends ChangeNotifier {
   List<Point> points = []; // The points on the globe.
   List<AnimatedPointConnection> connections =
       []; // The connections between points.
+  List<Rod> rods = []; // Rods going through the sphere.
+  List<RegionHighlight> regions = []; // Highlighted regions.
   SphereStyle sphereStyle; // The style of the sphere.
   ui.Image? surface; // The surface image of the sphere.
   ui.Image? background; // The background image of the sphere.
@@ -292,6 +296,80 @@ class FlutterEarthGlobeController extends ChangeNotifier {
   void removePoint(String id) {
     points.removeWhere((element) => element.id == id);
     notifyListeners();
+  }
+
+  /// Adds a [rod] that goes through the globe.
+  void addRod(Rod rod) {
+    rods.add(rod);
+    notifyListeners();
+  }
+
+  /// Removes the rod with the given [id].
+  void removeRod(String id) {
+    rods.removeWhere((element) => element.id == id);
+    notifyListeners();
+  }
+
+  /// Updates a rod by [id].
+  void updateRod(
+    String id, {
+    GlobeCoordinates? start,
+    GlobeCoordinates? end,
+    Color? color,
+    double? width,
+    double? stickOut,
+  }) {
+    final index = rods.indexWhere((element) => element.id == id);
+    if (index != -1) {
+      rods[index] = rods[index].copyWith(
+        start: start,
+        end: end,
+        color: color,
+        width: width,
+        stickOut: stickOut,
+      );
+      notifyListeners();
+    }
+  }
+
+  /// Adds a highlighted [region] to the globe.
+  void addRegion(RegionHighlight region) {
+    regions.add(region);
+    notifyListeners();
+  }
+
+  /// Removes a highlighted region by [id].
+  void removeRegion(String id) {
+    regions.removeWhere((element) => element.id == id);
+    notifyListeners();
+  }
+
+  /// Updates a highlighted region with [id].
+  void updateRegion(
+    String id, {
+    List<GlobeCoordinates>? coordinates,
+    double? radius,
+    Color? color,
+  }) {
+    final index = regions.indexWhere((element) => element.id == id);
+    if (index != -1) {
+      final r = regions[index];
+      if (r.type == RegionHighlightType.polygon) {
+        regions[index] = RegionHighlight.polygon(
+          id: r.id,
+          coordinates: coordinates ?? r.coordinates,
+          color: color ?? r.color,
+        );
+      } else {
+        regions[index] = RegionHighlight.circle(
+          id: r.id,
+          center: coordinates?.first ?? r.coordinates.first,
+          radius: radius ?? r.radius,
+          color: color ?? r.color,
+        );
+      }
+      notifyListeners();
+    }
   }
 
   /// Loads the [image] as the surface of the globe.

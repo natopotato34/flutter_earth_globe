@@ -4,6 +4,8 @@ import 'package:flutter_earth_globe/globe_coordinates.dart';
 import 'package:flutter_earth_globe/point.dart';
 import 'package:flutter_earth_globe/point_connection.dart';
 import 'package:flutter_earth_globe/point_connection_style.dart';
+import 'package:flutter_earth_globe/rod.dart';
+import 'package:flutter_earth_globe/region_highlight.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_earth_globe/sphere_style.dart';
 
@@ -47,6 +49,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   late List<Point> points;
 
   List<PointConnection> connections = [];
+  late Rod exampleRod;
+  late RegionHighlight polygonRegion;
+  late RegionHighlight circleRegion;
 
   Widget pointLabelBuilder(
       BuildContext context, Point point, bool isHovering, bool visible) {
@@ -193,6 +198,29 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     for (var point in points) {
       _controller.addPoint(point);
     }
+
+    exampleRod = Rod(
+        id: 'rod1',
+        start: points[0].coordinates,
+        end: points[2].coordinates,
+        color: Colors.purple,
+        stickOut: 15,
+        width: 3);
+    _controller.addRod(exampleRod);
+
+    polygonRegion = RegionHighlight.polygon(id: 'poly1', coordinates: [
+      const GlobeCoordinates(10, -20),
+      const GlobeCoordinates(15, -10),
+      const GlobeCoordinates(20, -20),
+    ], color: Colors.green.withOpacity(0.3));
+    _controller.addRegion(polygonRegion);
+
+    circleRegion = RegionHighlight.circle(
+        id: 'circle1',
+        center: const GlobeCoordinates(-20, 30),
+        radius: 10,
+        color: Colors.red.withOpacity(0.2));
+    _controller.addRegion(circleRegion);
 
     super.initState();
   }
