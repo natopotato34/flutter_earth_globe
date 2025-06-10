@@ -5,6 +5,9 @@ import 'package:vector_math/vector_math_64.dart';
 
 import 'globe_coordinates.dart';
 
+/// Average radius of the Earth in miles.
+const double kEarthRadiusMiles = 3958.8;
+
 /// Converts degrees to radians.
 ///
 /// Takes a [degrees] value and returns the equivalent value in radians.
@@ -17,6 +20,16 @@ double degreesToRadians(double degrees) {
 /// Takes a [radians] value and returns the equivalent value in degrees.
 double radiansToDegrees(double radians) {
   return radians * 180 / pi;
+}
+
+/// Converts [miles] on the Earth's surface to degrees.
+double milesToDegrees(double miles) {
+  return radiansToDegrees(miles / kEarthRadiusMiles);
+}
+
+/// Converts a distance in degrees on the Earth's surface to miles.
+double degreesToMiles(double degrees) {
+  return degreesToRadians(degrees) * kEarthRadiusMiles;
 }
 
 /// Calculates the 3D position of a point on a sphere.
@@ -164,4 +177,22 @@ double adjustModRotation(double rotation) {
     rotation = rotation % twoPi;
   }
   return rotation;
+}
+
+/// Calculates a destination coordinate from [start] given a distance in degrees
+/// and a bearing in degrees.
+GlobeCoordinates offsetCoordinates(
+    GlobeCoordinates start, double distanceDeg, double bearingDeg) {
+  final lat1 = degreesToRadians(start.latitude);
+  final lon1 = degreesToRadians(start.longitude);
+  final brng = degreesToRadians(bearingDeg);
+  final dist = degreesToRadians(distanceDeg);
+
+  final lat2 =
+      asin(sin(lat1) * cos(dist) + cos(lat1) * sin(dist) * cos(brng));
+  final lon2 = lon1 +
+      atan2(sin(brng) * sin(dist) * cos(lat1),
+          cos(dist) - sin(lat1) * sin(lat2));
+
+  return GlobeCoordinates(radiansToDegrees(lat2), radiansToDegrees(lon2));
 }

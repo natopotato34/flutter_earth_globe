@@ -4,6 +4,8 @@ import 'point.dart';
 import 'line_helper.dart';
 import 'math_helper.dart';
 import 'point_connection.dart';
+import 'rod.dart';
+import 'region_highlight.dart';
 
 import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math_64.dart' as vector;
@@ -61,6 +63,8 @@ class ForegroundPainter extends CustomPainter {
     required this.rotationX,
     required this.zoomFactor,
     required this.points,
+    required this.rods,
+    required this.regions,
     this.hoverPoint,
     this.clickPoint,
     this.onPointClicked,
@@ -82,6 +86,8 @@ class ForegroundPainter extends CustomPainter {
   final double rotationX;
   final double zoomFactor;
   final List<Point> points;
+  final List<Rod> rods;
+  final List<RegionHighlight> regions;
 
   bool isSame(GlobeCoordinates c1, GlobeCoordinates c2) {
     return c1.latitude == c2.latitude && c1.longitude == c2.longitude;
@@ -92,6 +98,43 @@ class ForegroundPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final localHover = hoverPoint;
     final localClick = clickPoint;
+
+    // Draw highlighted regions
+    for (var region in regions) {
+      final paint = Paint()
+        ..color = region.color
+        ..style = PaintingStyle.fill;
+      Path path = Path();
+      List<GlobeCoordinates> coords;
+      if (region.type == RegionHighlightType.circle) {
+        coords = [];
+        for (int i = 0; i < 36; i++) {
+          final bearing = i * 10.0;
+          coords.add(offsetCoordinates(
+              region.coordinates.first, region.radius, bearing));
+        }
+      } else {
+        coords = region.coordinates;
+      }
+      final projected = coords
+          .map((c) => getSpherePosition3D(c, radius + 0.5, rotationY, rotationZ))
+          .toList();
+      if (projected.every((v) => v.x > 0)) {
+        for (int i = 0; i < projected.length; i++) {
+          final p = Offset(center.dx + projected[i].y,
+              center.dy - projected[i].z);
+          if (i == 0) {
+            path.moveTo(p.dx, p.dy);
+          } else {
+            path.lineTo(p.dx, p.dy);
+          }
+        }
+        if (path.computeMetrics().isNotEmpty) {
+          path.close();
+          canvas.drawPath(path, paint);
+        }
+      }
+    }
 
     for (var point in points) {
       final pointPaint = Paint()..color = point.style.color;
@@ -132,17 +175,49 @@ class ForegroundPainter extends CustomPainter {
           });
         }
 
-        if ((point.isLabelVisible &&
-                point.label != null &&
-                point.label != '') &&
-            point.labelBuilder == null) {
-          paintText(point.label ?? '', point.labelTextStyle, cartesian2D, size,
-              canvas);
-        }
-      } else {
-        hoverOverPoint(point.id, cartesian2D, false, false);
+      if ((point.isLabelVisible &&
+              point.label != null &&
+              point.label != '') &&
+          point.labelBuilder == null) {
+        paintText(point.label ?? '', point.labelTextStyle, cartesian2D, size,
+            canvas);
+      }
+    } else {
+      hoverOverPoint(point.id, cartesian2D, false, false);
+    }
+  }
+
+    // Draw rods
+    for (var rod in rods) {
+      final startSurface =
+          getSpherePosition3D(rod.start, radius, rotationY, rotationZ);
+      final endSurface =
+          getSpherePosition3D(rod.end, radius, rotationY, rotationZ);
+
+      // Calculate the direction vector from start to end after rotations
+      final direction = (endSurface - startSurface)..normalize();
+
+      final stickOut = rod.stickOutMiles / kEarthRadiusMiles * radius;
+      final startOuter = startSurface - direction * stickOut;
+      final endOuter = endSurface + direction * stickOut;
+
+      final paint = Paint()
+        ..color = rod.color
+        ..strokeWidth = rod.width
+        ..strokeCap = StrokeCap.round;
+
+      if (startOuter.x > 0) {
+        final p1 = Offset(center.dx + startOuter.y, center.dy - startOuter.z);
+        final p2 = Offset(center.dx + startSurface.y, center.dy - startSurface.z);
+        canvas.drawLine(p1, p2, paint);
+      }
+      if (endOuter.x > 0) {
+        final p1 = Offset(center.dx + endSurface.y, center.dy - endSurface.z);
+        final p2 = Offset(center.dx + endOuter.y, center.dy - endOuter.z);
+        canvas.drawLine(p1, p2, paint);
       }
     }
+
     for (var connection in connections) {
       Map? info = drawAnimatedLine(canvas, connection, radius, rotationY,
           rotationZ, connection.animationProgress, size, hoverPoint);
