@@ -196,47 +196,42 @@ class ForegroundPainter extends CustomPainter {
       final endSurface =
           getSpherePosition3D(rod.end, radius, rotationY, rotationZ);
 
-      // Extend outward along the local normal so tops stay visible even when
-      // the base is hidden behind the horizon.
-      final startOuter =
-          getSpherePosition3D(rod.start, radius + stickOut, rotationY, rotationZ);
-      final endOuter =
-          getSpherePosition3D(rod.end, radius + stickOut, rotationY, rotationZ);
+      // Extend beyond the sphere along the straight line connecting the
+      // two surface points.
+      final direction = (endSurface - startSurface).normalized();
+      final startOuter = startSurface - direction * stickOut;
+      final endOuter = endSurface + direction * stickOut;
 
       final paint = Paint()
         ..color = rod.color
         ..strokeWidth = rod.width
         ..strokeCap = StrokeCap.round;
 
-      void drawSegment(vector.Vector3 surface, vector.Vector3 outer) {
-        final surface2d = Offset(center.dx + surface.y, center.dy - surface.z);
-        final outer2d = Offset(center.dx + outer.y, center.dy - outer.z);
+      void drawSegment(vector.Vector3 a, vector.Vector3 b) {
+        final a2d = Offset(center.dx + a.y, center.dy - a.z);
+        final b2d = Offset(center.dx + b.y, center.dy - b.z);
 
-        // If both points are behind the sphere nothing is visible.
-        if (surface.x <= 0 && outer.x <= 0) {
+        if (a.x <= 0 && b.x <= 0) {
           return;
         }
 
-        // If both points are in front the whole segment is visible.
-        if (surface.x > 0 && outer.x > 0) {
-          canvas.drawLine(surface2d, outer2d, paint);
+        if (a.x > 0 && b.x > 0) {
+          canvas.drawLine(a2d, b2d, paint);
           return;
         }
 
-        // Otherwise one point is front and one is back. Clip at the horizon
-        // where x == 0 so that only the visible portion is drawn.
-        final t = surface.x / (surface.x - outer.x);
-        final inter = surface + (outer - surface) * t;
+        final t = a.x / (a.x - b.x);
+        final inter = a + (b - a) * t;
         final inter2d = Offset(center.dx + inter.y, center.dy - inter.z);
 
-        if (surface.x > 0) {
-          canvas.drawLine(surface2d, inter2d, paint);
-        } else if (outer.x > 0) {
-          canvas.drawLine(inter2d, outer2d, paint);
+        if (a.x > 0) {
+          canvas.drawLine(a2d, inter2d, paint);
+        } else if (b.x > 0) {
+          canvas.drawLine(inter2d, b2d, paint);
         }
       }
 
-      drawSegment(startSurface, startOuter);
+      drawSegment(startOuter, startSurface);
       drawSegment(endSurface, endOuter);
     }
 
