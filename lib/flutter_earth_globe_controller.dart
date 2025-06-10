@@ -318,6 +318,7 @@ class FlutterEarthGlobeController extends ChangeNotifier {
     Color? color,
     double? width,
     double? stickOutMiles,
+
   }) {
     final index = rods.indexWhere((element) => element.id == id);
     if (index != -1) {

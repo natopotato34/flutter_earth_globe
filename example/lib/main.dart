@@ -7,6 +7,7 @@ import 'package:flutter_earth_globe/point_connection_style.dart';
 import 'package:flutter_earth_globe/rod.dart';
 import 'package:flutter_earth_globe/region_highlight.dart';
 import 'package:flutter_earth_globe/math_helper.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_earth_globe/sphere_style.dart';
 
@@ -62,6 +63,18 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   double hawaiiRadiusMiles = 100;
   double rodAnchorageRioLengthMiles = 1000;
   double rodHongKongMadridLengthMiles = 1000;
+
+  late Rod rodAnchorageRio;
+  late Rod rodHongKongMadrid;
+  late RegionHighlight bermudaTriangle;
+  late RegionHighlight hawaiiCircle;
+
+  bool showRodAnchorageRio = false;
+  bool showRodHongKongMadrid = false;
+  bool showBermudaTriangle = false;
+  bool showHawaiiCircle = false;
+  double hawaiiRadius = 10;
+
 
   Widget pointLabelBuilder(
       BuildContext context, Point point, bool isHovering, bool visible) {
@@ -209,12 +222,15 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       _controller.addPoint(point);
     }
 
+
     rodAnchorageRio = Rod(
         id: 'rodAnchorageRio',
         start: const GlobeCoordinates(61.2175, -149.8997),
         end: const GlobeCoordinates(-22.9068, -43.1729),
         color: Colors.purple,
+
         stickOutMiles: rodAnchorageRioLengthMiles,
+
         width: 3);
 
     rodHongKongMadrid = Rod(
@@ -222,7 +238,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         start: const GlobeCoordinates(22.3193, 114.1694),
         end: const GlobeCoordinates(40.4168, -3.7038),
         color: Colors.orange,
+
         stickOutMiles: rodHongKongMadridLengthMiles,
+
         width: 3);
 
     bermudaTriangle = RegionHighlight.polygon(id: 'bermuda', coordinates: [
@@ -234,8 +252,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     hawaiiCircle = RegionHighlight.circle(
         id: 'hawaii',
         center: const GlobeCoordinates(19.8968, -155.5828),
+
         radius: milesToDegrees(hawaiiRadiusMiles),
         color: Colors.red.withOpacity(0.2));
+
 
     super.initState();
   }
@@ -498,6 +518,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       },
                     )
                   : null),
+
           getListAction(
               'Hong Kong - Madrid',
               Checkbox(
@@ -529,6 +550,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       },
                     )
                   : null),
+
           getDividerText('Regions'),
           getListAction(
               'Bermuda Triangle',

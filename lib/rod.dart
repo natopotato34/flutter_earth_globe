@@ -11,6 +11,7 @@ class Rod {
   final double width;
   final double stickOutMiles;
 
+
   /// Creates a new [Rod].
   const Rod({
     required this.start,
@@ -19,6 +20,7 @@ class Rod {
     this.color = Colors.white,
     this.width = 2,
     this.stickOutMiles = 10,
+
   });
 
   /// Returns a copy of this rod with the given fields replaced.

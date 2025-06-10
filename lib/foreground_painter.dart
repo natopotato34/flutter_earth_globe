@@ -216,6 +216,8 @@ class ForegroundPainter extends CustomPainter {
         final p2 = Offset(center.dx + endOuter.y, center.dy - endOuter.z);
         canvas.drawLine(p1, p2, paint);
       }
+    } else {
+      hoverOverPoint(point.id, cartesian2D, false, false);
     }
 
     for (var connection in connections) {
