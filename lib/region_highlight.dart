@@ -30,4 +30,27 @@ class RegionHighlight {
     this.color = const Color(0x8844FF44),
   })  : type = RegionHighlightType.circle,
         coordinates = [center];
+
+
+  RegionHighlight copyWith({
+    List<GlobeCoordinates>? coordinates,
+    double? radius,
+    Color? color,
+  }) {
+    if (type == RegionHighlightType.polygon) {
+      return RegionHighlight.polygon(
+        id: id,
+        coordinates: coordinates ?? this.coordinates,
+        color: color ?? this.color,
+      );
+    } else {
+      return RegionHighlight.circle(
+        id: id,
+        center: coordinates?.first ?? this.coordinates.first,
+        radius: radius ?? this.radius,
+        color: color ?? this.color,
+      );
+    }
+  }
+
 }

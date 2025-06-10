@@ -49,9 +49,18 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   late List<Point> points;
 
   List<PointConnection> connections = [];
-  late Rod exampleRod;
-  late RegionHighlight polygonRegion;
-  late RegionHighlight circleRegion;
+
+  late Rod rodAnchorageRio;
+  late Rod rodHongKongMadrid;
+  late RegionHighlight bermudaTriangle;
+  late RegionHighlight hawaiiCircle;
+
+  bool showRodAnchorageRio = false;
+  bool showRodHongKongMadrid = false;
+  bool showBermudaTriangle = false;
+  bool showHawaiiCircle = false;
+  double hawaiiRadius = 10;
+
 
   Widget pointLabelBuilder(
       BuildContext context, Point point, bool isHovering, bool visible) {
@@ -199,28 +208,35 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       _controller.addPoint(point);
     }
 
-    exampleRod = Rod(
-        id: 'rod1',
-        start: points[0].coordinates,
-        end: points[2].coordinates,
+
+    rodAnchorageRio = Rod(
+        id: 'rodAnchorageRio',
+        start: const GlobeCoordinates(61.2175, -149.8997),
+        end: const GlobeCoordinates(-22.9068, -43.1729),
         color: Colors.purple,
         stickOut: 15,
         width: 3);
-    _controller.addRod(exampleRod);
 
-    polygonRegion = RegionHighlight.polygon(id: 'poly1', coordinates: [
-      const GlobeCoordinates(10, -20),
-      const GlobeCoordinates(15, -10),
-      const GlobeCoordinates(20, -20),
+    rodHongKongMadrid = Rod(
+        id: 'rodHongKongMadrid',
+        start: const GlobeCoordinates(22.3193, 114.1694),
+        end: const GlobeCoordinates(40.4168, -3.7038),
+        color: Colors.orange,
+        stickOut: 15,
+        width: 3);
+
+    bermudaTriangle = RegionHighlight.polygon(id: 'bermuda', coordinates: [
+      const GlobeCoordinates(25.76, -80.19),
+      const GlobeCoordinates(18.4663, -66.1057),
+      const GlobeCoordinates(32.3078, -64.7505),
     ], color: Colors.green.withOpacity(0.3));
-    _controller.addRegion(polygonRegion);
 
-    circleRegion = RegionHighlight.circle(
-        id: 'circle1',
-        center: const GlobeCoordinates(-20, 30),
-        radius: 10,
+    hawaiiCircle = RegionHighlight.circle(
+        id: 'hawaii',
+        center: const GlobeCoordinates(19.8968, -155.5828),
+        radius: hawaiiRadius,
         color: Colors.red.withOpacity(0.2));
-    _controller.addRegion(circleRegion);
+
 
     super.initState();
   }
@@ -451,6 +467,76 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     },
                   )))
               .toList(),
+          getDividerText('Rods'),
+          getListAction(
+              'Anchorage - Rio',
+              Checkbox(
+                value: showRodAnchorageRio,
+                onChanged: (value) {
+                  showRodAnchorageRio = value ?? false;
+                  if (showRodAnchorageRio) {
+                    _controller.addRod(rodAnchorageRio);
+                  } else {
+                    _controller.removeRod(rodAnchorageRio.id);
+                  }
+                  setState(() {});
+                },
+              )),
+          getListAction(
+              'Hong Kong - Madrid',
+              Checkbox(
+                value: showRodHongKongMadrid,
+                onChanged: (value) {
+                  showRodHongKongMadrid = value ?? false;
+                  if (showRodHongKongMadrid) {
+                    _controller.addRod(rodHongKongMadrid);
+                  } else {
+                    _controller.removeRod(rodHongKongMadrid.id);
+                  }
+                  setState(() {});
+                },
+              )),
+          getDividerText('Regions'),
+          getListAction(
+              'Bermuda Triangle',
+              Checkbox(
+                value: showBermudaTriangle,
+                onChanged: (value) {
+                  showBermudaTriangle = value ?? false;
+                  if (showBermudaTriangle) {
+                    _controller.addRegion(bermudaTriangle);
+                  } else {
+                    _controller.removeRegion(bermudaTriangle.id);
+                  }
+                  setState(() {});
+                },
+              )),
+          getListAction('Hawaii Circle',
+              Checkbox(
+                value: showHawaiiCircle,
+                onChanged: (value) {
+                  showHawaiiCircle = value ?? false;
+                  if (showHawaiiCircle) {
+                    _controller.addRegion(hawaiiCircle);
+                  } else {
+                    _controller.removeRegion(hawaiiCircle.id);
+                  }
+                  setState(() {});
+                },
+              ),
+              secondary: showHawaiiCircle
+                  ? Slider(
+                      min: 1,
+                      max: 30,
+                      value: hawaiiRadius,
+                      onChanged: (v) {
+                        hawaiiRadius = v;
+                        hawaiiCircle = hawaiiCircle.copyWith(radius: hawaiiRadius);
+                        _controller.updateRegion(hawaiiCircle.id, radius: hawaiiRadius);
+                        setState(() {});
+                      },
+                    )
+                  : null),
         ],
       ),
     );

@@ -181,6 +181,7 @@ class ForegroundPainter extends CustomPainter {
           point.labelBuilder == null) {
         paintText(point.label ?? '', point.labelTextStyle, cartesian2D, size,
             canvas);
+
       }
     } else {
       hoverOverPoint(point.id, cartesian2D, false, false);
@@ -189,14 +190,17 @@ class ForegroundPainter extends CustomPainter {
 
     // Draw rods
     for (var rod in rods) {
-      final startOuter = getSpherePosition3D(
-          rod.start, radius + rod.stickOut, rotationY, rotationZ);
       final startSurface =
           getSpherePosition3D(rod.start, radius, rotationY, rotationZ);
-      final endOuter =
-          getSpherePosition3D(rod.end, radius + rod.stickOut, rotationY, rotationZ);
       final endSurface =
           getSpherePosition3D(rod.end, radius, rotationY, rotationZ);
+
+      // Calculate the direction vector from start to end after rotations
+      final direction = (endSurface - startSurface)..normalize();
+
+      final startOuter = startSurface - direction * rod.stickOut;
+      final endOuter = endSurface + direction * rod.stickOut;
+
       final paint = Paint()
         ..color = rod.color
         ..strokeWidth = rod.width
@@ -213,6 +217,7 @@ class ForegroundPainter extends CustomPainter {
         canvas.drawLine(p1, p2, paint);
       }
     }
+
 
     for (var connection in connections) {
       Map? info = drawAnimatedLine(canvas, connection, radius, rotationY,
