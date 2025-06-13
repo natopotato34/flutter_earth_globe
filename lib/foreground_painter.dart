@@ -252,11 +252,10 @@ class ForegroundPainter extends CustomPainter {
       final endSurface =
           getSpherePosition3D(rod.end, radius, rotationY, rotationZ);
 
-      // Extend rods along the surface normal so they remain visible as
-      // their bases move behind the horizon.
-      final startOuter =
-          startSurface + startSurface.normalized() * stickOut;
-      final endOuter = endSurface + endSurface.normalized() * stickOut;
+      // Extend rods along the straight line connecting the two coordinates.
+      final dir = (endSurface - startSurface).normalized();
+      final startOuter = startSurface - dir * stickOut;
+      final endOuter = endSurface + dir * stickOut;
 
       final paint = Paint()
         ..color = rod.color
