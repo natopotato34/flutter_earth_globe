@@ -233,7 +233,12 @@ class ForegroundPainter extends CustomPainter {
       final oFront = o.x >= 0;
       if (!sFront && !oFront) return;
       if (!sFront || !oFront) {
-        final t = -s.x / (o.x - s.x);
+        // Reduce the clipping rate so the base does not vanish instantly
+        // when the surface point moves slightly behind the horizon.
+        final baseFactor = 1 + (outer - surface).length / radius;
+        double t = -s.x / (o.x - s.x);
+        t /= baseFactor;
+        if (t > 1) t = 1;
         final i = s + (o - s) * t;
         if (!sFront) {
           s = i;

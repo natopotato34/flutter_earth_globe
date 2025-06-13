@@ -27,6 +27,8 @@ Flutter Earth Globe is an interactive 3D sphere widget for Flutter applications.
   through the sphere and extending beyond each surface point.
 - **Rods Clip at the Horizon**: Rods shorten from the obscured base as an end
   moves behind the horizon rather than disappearing all at once.
+- **Gradual Rod Occlusion**: The base hides at a slower rate so visible
+  portions remain longer when sliding behind the globe.
 - **Region Highlighting**: Highlight polygonal areas or circular regions using a radius value.
 
 - **Responsive Design**: Ensures compatibility with a wide range of devices and screen sizes.
