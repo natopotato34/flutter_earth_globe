@@ -66,6 +66,8 @@ class ForegroundPainter extends CustomPainter {
     required this.points,
     required this.rods,
     required this.regions,
+    this.showHorizonRing = false,
+    this.horizonRingColor = Colors.white,
     this.hoverPoint,
     this.clickPoint,
     this.onPointClicked,
@@ -89,6 +91,8 @@ class ForegroundPainter extends CustomPainter {
   final List<Point> points;
   final List<Rod> rods;
   final List<RegionHighlight> regions;
+  final bool showHorizonRing;
+  final Color horizonRingColor;
 
   bool isSame(GlobeCoordinates c1, GlobeCoordinates c2) {
     return c1.latitude == c2.latitude && c1.longitude == c2.longitude;
@@ -213,6 +217,15 @@ class ForegroundPainter extends CustomPainter {
   }
 
     // Draw rods with the segment inside the sphere hidden
+    vector.Vector3 clipToHorizon(vector.Vector3 a, vector.Vector3 b) {
+      // assumes a.x != b.x
+      double t = -a.x / (b.x - a.x);
+      return a + (b - a) * t;
+    }
+
+    Offset toOffset(vector.Vector3 v) =>
+        Offset(center.dx + v.y, center.dy - v.z);
+
     for (var rod in rods) {
       final stickOut = rod.stickOutMiles / kEarthRadiusMiles * radius;
 
@@ -230,17 +243,32 @@ class ForegroundPainter extends CustomPainter {
         ..strokeWidth = rod.width
         ..strokeCap = StrokeCap.round;
 
-      final startOut2d =
-          Offset(center.dx + startOuter.y, center.dy - startOuter.z);
-      final startSurf2d =
-          Offset(center.dx + startSurface.y, center.dy - startSurface.z);
-      final endSurf2d =
-          Offset(center.dx + endSurface.y, center.dy - endSurface.z);
-      final endOut2d = Offset(center.dx + endOuter.y, center.dy - endOuter.z);
+      void drawClipped(vector.Vector3 a, vector.Vector3 b) {
+        final aFront = a.x >= 0;
+        final bFront = b.x >= 0;
+        if (aFront && bFront) {
+          canvas.drawLine(toOffset(a), toOffset(b), paint);
+        } else if (aFront != bFront) {
+          if ((b.x - a.x).abs() < 1e-6) return;
+          final inter = clipToHorizon(a, b);
+          if (aFront) {
+            canvas.drawLine(toOffset(a), toOffset(inter), paint);
+          } else {
+            canvas.drawLine(toOffset(inter), toOffset(b), paint);
+          }
+        }
+      }
 
-      // Draw only the parts outside the sphere
-      canvas.drawLine(startOut2d, startSurf2d, paint);
-      canvas.drawLine(endSurf2d, endOut2d, paint);
+      drawClipped(startSurface, startOuter);
+      drawClipped(endSurface, endOuter);
+    }
+
+    if (showHorizonRing) {
+      final ringPaint = Paint()
+        ..color = horizonRingColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5;
+      canvas.drawCircle(center, radius, ringPaint);
     }
 
     for (var connection in connections) {

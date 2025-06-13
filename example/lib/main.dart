@@ -59,6 +59,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   bool showRodHongKongMadrid = false;
   bool showBermudaTriangle = false;
   bool showHawaiiCircle = false;
+  bool showHorizonRing = false;
   double hawaiiRadiusMiles = 100;
   double rodAnchorageRioLengthMiles = 1000;
   double rodHongKongMadridLengthMiles = 1000;
@@ -573,6 +574,17 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       },
                     )
                   : null),
+          getDividerText('Horizon'),
+          getListAction(
+              'Show Horizon Ring',
+              Checkbox(
+                value: showHorizonRing,
+                onChanged: (v) {
+                  showHorizonRing = v ?? false;
+                  _controller.setHorizonRingVisible(showHorizonRing);
+                  setState(() {});
+                },
+              )),
         ],
       ),
     );

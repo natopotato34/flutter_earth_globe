@@ -30,6 +30,8 @@ class FlutterEarthGlobeController extends ChangeNotifier {
       []; // The connections between points.
   List<Rod> rods = []; // Rods going through the sphere.
   List<RegionHighlight> regions = []; // Highlighted regions.
+  bool showHorizonRing = false; // Whether to draw the horizon ring.
+  Color horizonRingColor = Colors.white; // Color of the horizon ring.
   SphereStyle sphereStyle; // The style of the sphere.
   ui.Image? surface; // The surface image of the sphere.
   ui.Image? background; // The background image of the sphere.
@@ -370,6 +372,18 @@ class FlutterEarthGlobeController extends ChangeNotifier {
       }
       notifyListeners();
     }
+  }
+
+  /// Sets whether the horizon ring should be drawn.
+  void setHorizonRingVisible(bool visible) {
+    showHorizonRing = visible;
+    notifyListeners();
+  }
+
+  /// Sets the color of the horizon ring.
+  void setHorizonRingColor(Color color) {
+    horizonRingColor = color;
+    notifyListeners();
   }
 
   /// Loads the [image] as the surface of the globe.
