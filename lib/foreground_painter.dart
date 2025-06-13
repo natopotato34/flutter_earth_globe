@@ -252,16 +252,18 @@ class ForegroundPainter extends CustomPainter {
       final endSurface =
           getSpherePosition3D(rod.end, radius, rotationY, rotationZ);
 
-      // Extend rods along the straight line connecting the two coordinates.
-      final dir = (endSurface - startSurface).normalized();
-      final startOuter = startSurface - dir * stickOut;
-      final endOuter = endSurface + dir * stickOut;
+      // Direction of the line running through both coordinates.
+      final lineDir = (endSurface - startSurface).normalized();
+      final startOuter = startSurface - lineDir * stickOut;
+      final endOuter = endSurface + lineDir * stickOut;
 
       final paint = Paint()
         ..color = rod.color
         ..strokeWidth = rod.width
         ..strokeCap = StrokeCap.round;
 
+      // Each end of the rod is rendered separately so horizon clipping for
+      // one side doesn't affect the other.
       drawSegment(startSurface, startOuter, paint);
       drawSegment(endSurface, endOuter, paint);
     }
