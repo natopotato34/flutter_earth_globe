@@ -252,7 +252,7 @@ class ForegroundPainter extends CustomPainter {
       }
 
       drawSegment(startOuter, startSurface);
-      drawSegment(endSurface, endOuter);
+      drawSegment(endOuter, endSurface);
     }
 
     for (var connection in connections) {
