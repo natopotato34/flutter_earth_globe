@@ -227,17 +227,21 @@ class ForegroundPainter extends CustomPainter {
     // segment to [outer] is drawn. When the base is hidden, the portion inside
     // the horizon ring is omitted so only the visible piece remains.
     void drawSegment(vector.Vector3 surface, vector.Vector3 outer, Paint paint) {
-      if (surface.x >= 0) {
-        canvas.drawLine(toOffset(surface), toOffset(outer), paint);
-      } else {
-        final dx = outer.x - surface.x;
-        if (dx.abs() < 1e-6) return; // parallel to horizon and hidden
-        final t = -surface.x / dx;
-        if (t >= 0 && t <= 1) {
-          final i = surface + (outer - surface) * t;
-          canvas.drawLine(toOffset(i), toOffset(outer), paint);
+      var s = surface;
+      var o = outer;
+      final sFront = s.x >= 0;
+      final oFront = o.x >= 0;
+      if (!sFront && !oFront) return;
+      if (!sFront || !oFront) {
+        final t = -s.x / (o.x - s.x);
+        final i = s + (o - s) * t;
+        if (!sFront) {
+          s = i;
+        } else {
+          o = i;
         }
       }
+      canvas.drawLine(toOffset(s), toOffset(o), paint);
     }
 
     for (var rod in rods) {
@@ -248,9 +252,11 @@ class ForegroundPainter extends CustomPainter {
       final endSurface =
           getSpherePosition3D(rod.end, radius, rotationY, rotationZ);
 
-      final direction = (endSurface - startSurface).normalized();
-      final startOuter = startSurface - direction * stickOut;
-      final endOuter = endSurface + direction * stickOut;
+      // Extend rods along the surface normal so they remain visible as
+      // their bases move behind the horizon.
+      final startOuter =
+          startSurface + startSurface.normalized() * stickOut;
+      final endOuter = endSurface + endSurface.normalized() * stickOut;
 
       final paint = Paint()
         ..color = rod.color
