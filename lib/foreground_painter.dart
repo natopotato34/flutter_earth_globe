@@ -236,24 +236,8 @@ class ForegroundPainter extends CustomPainter {
         ..strokeWidth = rod.width
         ..strokeCap = StrokeCap.round;
 
-      void drawClipped(vector.Vector3 a, vector.Vector3 b) {
-        final aFront = a.x >= 0;
-        final bFront = b.x >= 0;
-        if (aFront && bFront) {
-          canvas.drawLine(toOffset(a), toOffset(b), paint);
-        } else if (aFront != bFront) {
-          if ((b.x - a.x).abs() < 1e-6) return;
-          final inter = clipToHorizon(a, b);
-          if (aFront) {
-            canvas.drawLine(toOffset(a), toOffset(inter), paint);
-          } else {
-            canvas.drawLine(toOffset(inter), toOffset(b), paint);
-          }
-        }
-      }
-
-      drawClipped(startSurface, startOuter);
-      drawClipped(endSurface, endOuter);
+      canvas.drawLine(toOffset(startSurface), toOffset(startOuter), paint);
+      canvas.drawLine(toOffset(endSurface), toOffset(endOuter), paint);
     }
 
 
