@@ -209,46 +209,40 @@ class ForegroundPainter extends CustomPainter {
         ..strokeCap = StrokeCap.round;
 
       void drawSegment(vector.Vector3 outer, vector.Vector3 base) {
-        final outer2d = Offset(center.dx + outer.y, center.dy - outer.z);
-        final base2d = Offset(center.dx + base.y, center.dy - base.z);
+        vector.Vector3 d = base - outer;
 
-        if (outer.x <= 0 && base.x <= 0) {
-          return;
-        }
+        // Solve intersection with the sphere to keep only the outside part
+        double A = d.dot(d);
+        double B = 2 * outer.dot(d);
+        double C = outer.dot(outer) - radius * radius;
+        double disc = B * B - 4 * A * C;
+        if (disc <= 0) return;
+        double sqrtDisc = math.sqrt(disc);
+        double tSphere1 = (-B - sqrtDisc) / (2 * A);
+        double tSphere2 = (-B + sqrtDisc) / (2 * A);
+        double tSphere = math.max(tSphere1, tSphere2).clamp(0.0, 1.0);
 
-        if (outer.x > 0 && base.x > 0) {
-          canvas.drawLine(outer2d, base2d, paint);
-          return;
-        }
-
-        final d = base - outer;
-        final A = d.dot(d);
-        final B = 2 * outer.dot(d);
-        final C = outer.dot(outer) - radius * radius;
-        final disc = B * B - 4 * A * C;
-        if (disc <= 0) {
-          return;
-        }
-        final sqrtDisc = math.sqrt(disc);
-        double t1 = (-B - sqrtDisc) / (2 * A);
-        double t2 = (-B + sqrtDisc) / (2 * A);
-        double t = 0;
-        if (0 <= t1 && t1 <= 1) {
-          t = t1;
-        } else if (0 <= t2 && t2 <= 1) {
-          t = t2;
+        // Determine portion in front of the horizon (x > 0)
+        double tPlane;
+        if (d.x == 0) {
+          if (outer.x <= 0) return;
+          tPlane = 0;
         } else {
-          return;
+          tPlane = (-outer.x) / d.x;
         }
-        final inter = outer + d * t;
-        if (inter.x <= 0) return;
-        final inter2d = Offset(center.dx + inter.y, center.dy - inter.z);
 
-        if (outer.x > 0) {
-          canvas.drawLine(outer2d, inter2d, paint);
-        } else if (base.x > 0) {
-          canvas.drawLine(inter2d, base2d, paint);
-        }
+        double tStart = math.max(0, tPlane);
+        double tEnd = tSphere;
+
+        if (tStart >= tEnd) return;
+
+        vector.Vector3 visibleStart = outer + d * tStart;
+        vector.Vector3 visibleEnd = outer + d * tEnd;
+        if (visibleStart.x <= 0 && visibleEnd.x <= 0) return;
+
+        final start2d = Offset(center.dx + visibleStart.y, center.dy - visibleStart.z);
+        final end2d = Offset(center.dx + visibleEnd.y, center.dy - visibleEnd.z);
+        canvas.drawLine(start2d, end2d, paint);
       }
 
       drawSegment(startOuter, startSurface);
