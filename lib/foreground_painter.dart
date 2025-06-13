@@ -100,12 +100,12 @@ class ForegroundPainter extends CustomPainter {
     final localHover = hoverPoint;
     final localClick = clickPoint;
 
-    // Draw highlighted regions
+    // Draw highlighted regions clipped to the front hemisphere
     for (var region in regions) {
       final paint = Paint()
         ..color = region.color
         ..style = PaintingStyle.fill;
-      Path path = Path();
+
       List<GlobeCoordinates> coords;
       if (region.type == RegionHighlightType.circle) {
         coords = [];
@@ -117,23 +117,46 @@ class ForegroundPainter extends CustomPainter {
       } else {
         coords = region.coordinates;
       }
-      final projected = coords
+
+      List<vector.Vector3> projected = coords
           .map((c) => getSpherePosition3D(c, radius + 0.5, rotationY, rotationZ))
           .toList();
-      if (projected.every((v) => v.x > 0)) {
-        for (int i = 0; i < projected.length; i++) {
-          final p = Offset(center.dx + projected[i].y,
-              center.dy - projected[i].z);
-          if (i == 0) {
-            path.moveTo(p.dx, p.dy);
-          } else {
-            path.lineTo(p.dx, p.dy);
-          }
+
+      // Clip polygon against the plane x >= 0 (front hemisphere)
+      List<vector.Vector3> clipped = [];
+      for (int i = 0; i < projected.length; i++) {
+        final a = projected[i];
+        final b = projected[(i + 1) % projected.length];
+        final aIn = a.x >= 0;
+        final bIn = b.x >= 0;
+
+        if (aIn && bIn) {
+          clipped.add(b);
+        } else if (aIn && !bIn) {
+          double t = -a.x / (b.x - a.x);
+          clipped.add(a + (b - a) * t);
+        } else if (!aIn && bIn) {
+          double t = -a.x / (b.x - a.x);
+          clipped.add(a + (b - a) * t);
+          clipped.add(b);
         }
-        if (path.computeMetrics().isNotEmpty) {
-          path.close();
-          canvas.drawPath(path, paint);
+      }
+
+      if (clipped.isEmpty) continue;
+
+      Path path = Path();
+      for (int i = 0; i < clipped.length; i++) {
+        final p = clipped[i];
+        final point = Offset(center.dx + p.y, center.dy - p.z);
+        if (i == 0) {
+          path.moveTo(point.dx, point.dy);
+        } else {
+          path.lineTo(point.dx, point.dy);
         }
+      }
+      if (path.computeMetrics().isNotEmpty) {
+        path.close();
+        canvas.drawPath(path, paint);
       }
     }
 
@@ -188,7 +211,7 @@ class ForegroundPainter extends CustomPainter {
     }
   }
 
-    // Draw rods
+    // Draw rods without occlusion for debugging
     for (var rod in rods) {
       final stickOut = rod.stickOutMiles / kEarthRadiusMiles * radius;
 
@@ -197,56 +220,17 @@ class ForegroundPainter extends CustomPainter {
       final endSurface =
           getSpherePosition3D(rod.end, radius, rotationY, rotationZ);
 
-      // Extend beyond the sphere along the straight line connecting the
-      // two surface points.
       final direction = (endSurface - startSurface).normalized();
       final startOuter = startSurface - direction * stickOut;
       final endOuter = endSurface + direction * stickOut;
 
+      final start2d = Offset(center.dx + startOuter.y, center.dy - startOuter.z);
+      final end2d = Offset(center.dx + endOuter.y, center.dy - endOuter.z);
       final paint = Paint()
         ..color = rod.color
         ..strokeWidth = rod.width
         ..strokeCap = StrokeCap.round;
-
-      void drawSegment(vector.Vector3 outer, vector.Vector3 base) {
-        vector.Vector3 d = base - outer;
-
-        // Solve intersection with the sphere to keep only the outside part
-        double A = d.dot(d);
-        double B = 2 * outer.dot(d);
-        double C = outer.dot(outer) - radius * radius;
-        double disc = B * B - 4 * A * C;
-        if (disc <= 0) return;
-        double sqrtDisc = math.sqrt(disc);
-        double tSphere1 = (-B - sqrtDisc) / (2 * A);
-        double tSphere2 = (-B + sqrtDisc) / (2 * A);
-        double tSphere = math.max(tSphere1, tSphere2).clamp(0.0, 1.0);
-
-        // Determine portion in front of the horizon (x > 0)
-        double tPlane;
-        if (d.x == 0) {
-          if (outer.x <= 0) return;
-          tPlane = 0;
-        } else {
-          tPlane = (-outer.x) / d.x;
-        }
-
-        double tStart = math.max(0, tPlane);
-        double tEnd = tSphere;
-
-        if (tStart >= tEnd) return;
-
-        vector.Vector3 visibleStart = outer + d * tStart;
-        vector.Vector3 visibleEnd = outer + d * tEnd;
-        if (visibleStart.x <= 0 && visibleEnd.x <= 0) return;
-
-        final start2d = Offset(center.dx + visibleStart.y, center.dy - visibleStart.z);
-        final end2d = Offset(center.dx + visibleEnd.y, center.dy - visibleEnd.z);
-        canvas.drawLine(start2d, end2d, paint);
-      }
-
-      drawSegment(startOuter, startSurface);
-      drawSegment(endOuter, endSurface);
+      canvas.drawLine(start2d, end2d, paint);
     }
 
     for (var connection in connections) {
