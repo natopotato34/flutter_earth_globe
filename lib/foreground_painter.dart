@@ -223,18 +223,20 @@ class ForegroundPainter extends CustomPainter {
     }
   }
 
-    // Draw rods with bases clipped by the horizon
-    void drawSegment(vector.Vector3 a, vector.Vector3 b, Paint paint) {
-      final aFront = a.x >= 0;
-      final bFront = b.x >= 0;
-      if (aFront && bFront) {
-        canvas.drawLine(toOffset(a), toOffset(b), paint);
-      } else if (aFront && !bFront) {
-        final i = intersectHorizon(a, b);
-        canvas.drawLine(toOffset(a), toOffset(i), paint);
-      } else if (!aFront && bFront) {
-        final i = intersectHorizon(a, b);
-        canvas.drawLine(toOffset(i), toOffset(b), paint);
+    // Draw a rod segment. If the base point [surface] is visible, the full
+    // segment to [outer] is drawn. When the base is hidden, the portion inside
+    // the horizon ring is omitted so only the visible piece remains.
+    void drawSegment(vector.Vector3 surface, vector.Vector3 outer, Paint paint) {
+      if (surface.x >= 0) {
+        canvas.drawLine(toOffset(surface), toOffset(outer), paint);
+      } else {
+        final dx = outer.x - surface.x;
+        if (dx.abs() < 1e-6) return; // parallel to horizon and hidden
+        final t = -surface.x / dx;
+        if (t >= 0 && t <= 1) {
+          final i = surface + (outer - surface) * t;
+          canvas.drawLine(toOffset(i), toOffset(outer), paint);
+        }
       }
     }
 
