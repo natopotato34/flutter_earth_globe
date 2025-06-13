@@ -100,7 +100,16 @@ class ForegroundPainter extends CustomPainter {
     final localHover = hoverPoint;
     final localClick = clickPoint;
 
-    // Draw highlighted regions without clipping so the shape remains
+    // Draw highlighted regions clipped by the horizon so only the
+    // front-facing portion remains visible.
+    vector.Vector3 clipToHorizon(vector.Vector3 a, vector.Vector3 b) {
+      double t = -a.x / (b.x - a.x);
+      return a + (b - a) * t;
+    }
+
+    Offset toOffset(vector.Vector3 v) =>
+        Offset(center.dx + v.y, center.dy - v.z);
+
     for (var region in regions) {
       final paint = Paint()
         ..color = region.color
@@ -125,20 +134,36 @@ class ForegroundPainter extends CustomPainter {
 
       if (projected.isEmpty) continue;
 
-      Path path = Path();
+      // Clip polygon against the plane x >= 0 (the visible hemisphere).
+      List<vector.Vector3> clipped = [];
       for (int i = 0; i < projected.length; i++) {
-        final p = projected[i];
-        final point = Offset(center.dx + p.y, center.dy - p.z);
-        if (i == 0) {
-          path.moveTo(point.dx, point.dy);
-        } else {
-          path.lineTo(point.dx, point.dy);
+        final s = projected[i];
+        final e = projected[(i + 1) % projected.length];
+        final sFront = s.x >= 0;
+        final eFront = e.x >= 0;
+
+        if (sFront && eFront) {
+          // both visible
+          clipped.add(e);
+        } else if (sFront && !eFront) {
+          // leaving visible hemisphere
+          clipped.add(clipToHorizon(s, e));
+        } else if (!sFront && eFront) {
+          // entering visible hemisphere
+          clipped.add(clipToHorizon(s, e));
+          clipped.add(e);
         }
       }
-      if (path.computeMetrics().isNotEmpty) {
-        path.close();
-        canvas.drawPath(path, paint);
+
+      if (clipped.isEmpty) continue;
+
+      Path path = Path()..moveTo(toOffset(clipped.first).dx, toOffset(clipped.first).dy);
+      for (int i = 1; i < clipped.length; i++) {
+        final p = clipped[i];
+        path.lineTo(toOffset(p).dx, toOffset(p).dy);
       }
+      path.close();
+      canvas.drawPath(path, paint);
     }
 
     for (var point in points) {
@@ -193,14 +218,6 @@ class ForegroundPainter extends CustomPainter {
   }
 
     // Draw rods with the segment inside the sphere hidden
-    vector.Vector3 clipToHorizon(vector.Vector3 a, vector.Vector3 b) {
-      // assumes a.x != b.x
-      double t = -a.x / (b.x - a.x);
-      return a + (b - a) * t;
-    }
-
-    Offset toOffset(vector.Vector3 v) =>
-        Offset(center.dx + v.y, center.dy - v.z);
 
     for (var rod in rods) {
       final stickOut = rod.stickOutMiles / kEarthRadiusMiles * radius;
