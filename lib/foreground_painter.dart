@@ -109,8 +109,9 @@ class ForegroundPainter extends CustomPainter {
       List<GlobeCoordinates> coords;
       if (region.type == RegionHighlightType.circle) {
         coords = [];
-        for (int i = 0; i < 36; i++) {
-          final bearing = i * 10.0;
+        // Use many segments so the clipped edge hugs the horizon
+        for (int i = 0; i < 180; i++) {
+          final bearing = i * 2.0;
           coords.add(offsetCoordinates(
               region.coordinates.first, region.radius, bearing));
         }
@@ -211,7 +212,7 @@ class ForegroundPainter extends CustomPainter {
     }
   }
 
-    // Draw rods without occlusion for debugging
+    // Draw rods with the segment inside the sphere hidden
     for (var rod in rods) {
       final stickOut = rod.stickOutMiles / kEarthRadiusMiles * radius;
 
@@ -224,13 +225,22 @@ class ForegroundPainter extends CustomPainter {
       final startOuter = startSurface - direction * stickOut;
       final endOuter = endSurface + direction * stickOut;
 
-      final start2d = Offset(center.dx + startOuter.y, center.dy - startOuter.z);
-      final end2d = Offset(center.dx + endOuter.y, center.dy - endOuter.z);
       final paint = Paint()
         ..color = rod.color
         ..strokeWidth = rod.width
         ..strokeCap = StrokeCap.round;
-      canvas.drawLine(start2d, end2d, paint);
+
+      final startOut2d =
+          Offset(center.dx + startOuter.y, center.dy - startOuter.z);
+      final startSurf2d =
+          Offset(center.dx + startSurface.y, center.dy - startSurface.z);
+      final endSurf2d =
+          Offset(center.dx + endSurface.y, center.dy - endSurface.z);
+      final endOut2d = Offset(center.dx + endOuter.y, center.dy - endOuter.z);
+
+      // Draw only the parts outside the sphere
+      canvas.drawLine(startOut2d, startSurf2d, paint);
+      canvas.drawLine(endSurf2d, endOut2d, paint);
     }
 
     for (var connection in connections) {
