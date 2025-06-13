@@ -9,6 +9,7 @@ import 'region_highlight.dart';
 
 import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math_64.dart' as vector;
+import 'dart:math' as math;
 
 import 'misc.dart';
 
@@ -207,27 +208,46 @@ class ForegroundPainter extends CustomPainter {
         ..strokeWidth = rod.width
         ..strokeCap = StrokeCap.round;
 
-      void drawSegment(vector.Vector3 a, vector.Vector3 b) {
-        final a2d = Offset(center.dx + a.y, center.dy - a.z);
-        final b2d = Offset(center.dx + b.y, center.dy - b.z);
+      void drawSegment(vector.Vector3 outer, vector.Vector3 base) {
+        final outer2d = Offset(center.dx + outer.y, center.dy - outer.z);
+        final base2d = Offset(center.dx + base.y, center.dy - base.z);
 
-        if (a.x <= 0 && b.x <= 0) {
+        if (outer.x <= 0 && base.x <= 0) {
           return;
         }
 
-        if (a.x > 0 && b.x > 0) {
-          canvas.drawLine(a2d, b2d, paint);
+        if (outer.x > 0 && base.x > 0) {
+          canvas.drawLine(outer2d, base2d, paint);
           return;
         }
 
-        final t = a.x / (a.x - b.x);
-        final inter = a + (b - a) * t;
+        final d = base - outer;
+        final A = d.dot(d);
+        final B = 2 * outer.dot(d);
+        final C = outer.dot(outer) - radius * radius;
+        final disc = B * B - 4 * A * C;
+        if (disc <= 0) {
+          return;
+        }
+        final sqrtDisc = math.sqrt(disc);
+        double t1 = (-B - sqrtDisc) / (2 * A);
+        double t2 = (-B + sqrtDisc) / (2 * A);
+        double t = 0;
+        if (0 <= t1 && t1 <= 1) {
+          t = t1;
+        } else if (0 <= t2 && t2 <= 1) {
+          t = t2;
+        } else {
+          return;
+        }
+        final inter = outer + d * t;
+        if (inter.x <= 0) return;
         final inter2d = Offset(center.dx + inter.y, center.dy - inter.z);
 
-        if (a.x > 0) {
-          canvas.drawLine(a2d, inter2d, paint);
-        } else if (b.x > 0) {
-          canvas.drawLine(inter2d, b2d, paint);
+        if (outer.x > 0) {
+          canvas.drawLine(outer2d, inter2d, paint);
+        } else if (base.x > 0) {
+          canvas.drawLine(inter2d, base2d, paint);
         }
       }
 
