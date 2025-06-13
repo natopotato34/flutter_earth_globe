@@ -66,8 +66,6 @@ class ForegroundPainter extends CustomPainter {
     required this.points,
     required this.rods,
     required this.regions,
-    this.showHorizonRing = false,
-    this.horizonRingColor = Colors.white,
     this.hoverPoint,
     this.clickPoint,
     this.onPointClicked,
@@ -91,8 +89,6 @@ class ForegroundPainter extends CustomPainter {
   final List<Point> points;
   final List<Rod> rods;
   final List<RegionHighlight> regions;
-  final bool showHorizonRing;
-  final Color horizonRingColor;
 
   bool isSame(GlobeCoordinates c1, GlobeCoordinates c2) {
     return c1.latitude == c2.latitude && c1.longitude == c2.longitude;
@@ -104,7 +100,7 @@ class ForegroundPainter extends CustomPainter {
     final localHover = hoverPoint;
     final localClick = clickPoint;
 
-    // Draw highlighted regions clipped to the front hemisphere
+    // Draw highlighted regions without clipping so the shape remains
     for (var region in regions) {
       final paint = Paint()
         ..color = region.color
@@ -123,35 +119,15 @@ class ForegroundPainter extends CustomPainter {
         coords = region.coordinates;
       }
 
-      List<vector.Vector3> projected = coords
+      final projected = coords
           .map((c) => getSpherePosition3D(c, radius + 0.5, rotationY, rotationZ))
           .toList();
 
-      // Clip polygon against the plane x >= 0 (front hemisphere)
-      List<vector.Vector3> clipped = [];
-      for (int i = 0; i < projected.length; i++) {
-        final a = projected[i];
-        final b = projected[(i + 1) % projected.length];
-        final aIn = a.x >= 0;
-        final bIn = b.x >= 0;
-
-        if (aIn && bIn) {
-          clipped.add(b);
-        } else if (aIn && !bIn) {
-          double t = -a.x / (b.x - a.x);
-          clipped.add(a + (b - a) * t);
-        } else if (!aIn && bIn) {
-          double t = -a.x / (b.x - a.x);
-          clipped.add(a + (b - a) * t);
-          clipped.add(b);
-        }
-      }
-
-      if (clipped.isEmpty) continue;
+      if (projected.isEmpty) continue;
 
       Path path = Path();
-      for (int i = 0; i < clipped.length; i++) {
-        final p = clipped[i];
+      for (int i = 0; i < projected.length; i++) {
+        final p = projected[i];
         final point = Offset(center.dx + p.y, center.dy - p.z);
         if (i == 0) {
           path.moveTo(point.dx, point.dy);
@@ -263,13 +239,6 @@ class ForegroundPainter extends CustomPainter {
       drawClipped(endSurface, endOuter);
     }
 
-    if (showHorizonRing) {
-      final ringPaint = Paint()
-        ..color = horizonRingColor
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5;
-      canvas.drawCircle(center, radius, ringPaint);
-    }
 
     for (var connection in connections) {
       Map? info = drawAnimatedLine(canvas, connection, radius, rotationY,

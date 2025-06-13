@@ -25,7 +25,7 @@ Flutter Earth Globe is an interactive 3D sphere widget for Flutter applications.
 - **Custom Labels Support**: Ability to create custom widget labels for a **point** or **connection**.
 - **Rods Through the Globe**: Connect two coordinates with a straight line that
   extends out from the surface at each end.
-- **Region Highlighting**: Highlight polygonal areas or circles on the globe.
+- **Region Highlighting**: Highlight polygonal areas or circular regions using a radius value.
 
 - **Responsive Design**: Ensures compatibility with a wide range of devices and screen sizes.
 

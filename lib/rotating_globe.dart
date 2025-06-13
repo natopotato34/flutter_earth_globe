@@ -583,10 +583,6 @@ class RotatingGlobeState extends State<RotatingGlobe>
                                     points: widget.controller.points,
                                     rods: widget.controller.rods,
                                     regions: widget.controller.regions,
-                                    showHorizonRing:
-                                        widget.controller.showHorizonRing,
-                                    horizonRingColor:
-                                        widget.controller.horizonRingColor,
                                   ),
                                   painter: SpherePainter(
                                     style: widget.controller.sphereStyle,
