@@ -102,7 +102,13 @@ class ForegroundPainter extends CustomPainter {
 
     // Draw highlighted regions clipped by the horizon so only the
     // front-facing portion remains visible.
-    vector.Vector3 clipToHorizon(vector.Vector3 a, vector.Vector3 b) {
+  vector.Vector3 clipToHorizon(vector.Vector3 a, vector.Vector3 b) {
+      double t = -a.x / (b.x - a.x);
+      return a + (b - a) * t;
+    }
+
+    // Finds the intersection of segment [a]-[b] with the horizon plane x=0.
+    vector.Vector3 intersectHorizon(vector.Vector3 a, vector.Vector3 b) {
       double t = -a.x / (b.x - a.x);
       return a + (b - a) * t;
     }
@@ -217,7 +223,20 @@ class ForegroundPainter extends CustomPainter {
     }
   }
 
-    // Draw rods with the segment inside the sphere hidden
+    // Draw rods with bases clipped by the horizon
+    void drawSegment(vector.Vector3 a, vector.Vector3 b, Paint paint) {
+      final aFront = a.x >= 0;
+      final bFront = b.x >= 0;
+      if (aFront && bFront) {
+        canvas.drawLine(toOffset(a), toOffset(b), paint);
+      } else if (aFront && !bFront) {
+        final i = intersectHorizon(a, b);
+        canvas.drawLine(toOffset(a), toOffset(i), paint);
+      } else if (!aFront && bFront) {
+        final i = intersectHorizon(a, b);
+        canvas.drawLine(toOffset(i), toOffset(b), paint);
+      }
+    }
 
     for (var rod in rods) {
       final stickOut = rod.stickOutMiles / kEarthRadiusMiles * radius;
@@ -236,8 +255,8 @@ class ForegroundPainter extends CustomPainter {
         ..strokeWidth = rod.width
         ..strokeCap = StrokeCap.round;
 
-      canvas.drawLine(toOffset(startSurface), toOffset(startOuter), paint);
-      canvas.drawLine(toOffset(endSurface), toOffset(endOuter), paint);
+      drawSegment(startSurface, startOuter, paint);
+      drawSegment(endSurface, endOuter, paint);
     }
 
 
